@@ -33,6 +33,7 @@
       <p>score <span id="score">00000</span></p>
       <p>rows <span id="rows">0</span></p>
       <p>metabytes <span id="metabytes">0</span></p>
+      <p>countdown <span id="countdown">60</span></p>
 
     </div>
     <canvas id="canvas">
@@ -81,7 +82,7 @@
         nx      = 10, // width of tetris court (in blocks)
         ny      = 20, // height of tetris court (in blocks)
         nu      = 5;  // width/height of upcoming preview (in blocks)
-
+        countdown = 60;
     //-------------------------------------------------------------------------
     // game variables (initialized during reset)
     //-------------------------------------------------------------------------
@@ -274,7 +275,14 @@
       setNextPiece();
       metabytes = 0; // Reset metabytes
     updateMetabyteDisplay();
+    countdown = 60;
+    updateCountdownDisplay();
     }
+    function updateCountdownDisplay() {
+        var roundedCountdown = countdown.toFixed(1); // Round to one decimal place
+    document.getElementById('countdown').innerText = `Countdown: ${roundedCountdown}`;
+}
+
 
     function update(idt) {
       if (playing) {
@@ -286,8 +294,23 @@
           dt = dt - step;
           drop();
         }
+
+         if (countdown > 0) {
+            countdown -= idt;
+            if (countdown <= 0) {
+                countdown = 0;
+                // Handle countdown end (e.g., game over, next level)
+                countdownEnd(); // Implement this function based on your game's requirements
+            }
+            updateCountdownDisplay(); // Update countdown display
+        }
       }
     }
+    function countdownEnd() {
+    // Example: End the game
+    lose();
+    // Or trigger any other event depending on your game's logic
+}
     function checkRowForMetabytePieces(row) {
     // Assuming `row` is an array of cells where each cell contains information about the block, including its color
     return row.some(cell => {
