@@ -121,6 +121,13 @@
     var s = { size: 3, blocks: [0x06C0, 0x8C40, 0x6C00, 0x4620], color: 'green'  };
     var t = { size: 3, blocks: [0x0E40, 0x4C40, 0x4E00, 0x4640], color: 'purple' };
     var z = { size: 3, blocks: [0x0C60, 0x4C80, 0xC600, 0x2640], color: 'red'    };
+    var im = { size: 4, blocks: [0x0F00, 0x2222, 0x00F0, 0x4444], color: 'lightcyan'};
+    var jm = { size: 3, blocks: [0x44C0, 0x8E00, 0x6440, 0x0E20], color: 'aqua'   };
+    var lm = { size: 3, blocks: [0x4460, 0x0E80, 0xC440, 0x2E00], color: 'aquamarine' };
+    var om = { size: 2, blocks: [0xCC00, 0xCC00, 0xCC00, 0xCC00], color: 'mediumaquamarine' };
+    var sm = { size: 3, blocks: [0x06C0, 0x8C40, 0x6C00, 0x4620], color: 'turquoise'  };
+    var tm = { size: 3, blocks: [0x0E40, 0x4C40, 0x4E00, 0x4640], color: 'cadetblue' };
+    var zm = { size: 3, blocks: [0x0C60, 0x4C80, 0xC600, 0x2640], color: 'teal'    };
 
     //------------------------------------------------
     // do the bit manipulation and iterate through each
@@ -162,7 +169,7 @@
     var pieces = [];
     function randomPiece() {
       if (pieces.length == 0)
-        pieces = [i,i,i,i,j,j,j,j,l,l,l,l,o,o,o,o,s,s,s,s,t,t,t,t,z,z,z,z];
+        pieces = [i,i,i,i,j,j,j,j,l,l,l,l,o,o,o,o,s,s,s,s,t,t,t,t,z,z,z,z,im,im,im,im,jm,jm,jm,jm,lm,lm,lm,lm,om,om,om,om,sm,sm,sm,sm,tm,tm,tm,tm,zm,zm,zm,zm];
       var type = pieces.splice(random(0, pieces.length-1), 1)[0];
       return { type: type, dir: DIR.UP, x: Math.round(random(0, nx - type.size)), y: 0 };
     }
@@ -245,6 +252,9 @@
     function addScore(n)            { score = score + n;   }
     function clearScore()           { setScore(0); }
     function clearRows()            { setRows(0); }
+
+
+
     function setRows(n)             { rows = n; step = Math.max(speed.min, speed.start - (speed.decrement*rows)); invalidateRows(); }
     function addRows(n)             { setRows(rows + n); }
     function getBlock(x,y)          { return (blocks && blocks[x] ? blocks[x][y] : null); }
@@ -278,6 +288,24 @@
         }
       }
     }
+    function checkRowForMetabytePieces(row) {
+    // Assuming `row` is an array of cells where each cell contains information about the block, including its color
+    return row.some(cell => {
+        // Check if the cell's color matches any of the Metabyte piece colors
+        return ['lightcyan', 'aqua', 'aquamarine', 'mediumaquamarine', 'turquoise', 'cadetblue', 'teal'].includes(cell.color);
+    });
+}
+function clearRow(rowIndex) {
+    let row = gameBoard[rowIndex]; // Assuming `gameBoard` represents your game's board and each row is an array of cells
+
+    if (checkRowForMetabytePieces(row)) {
+        // Increase Metabyte score by 10
+        metabytes += 10;
+        updateMetabyteDisplay();
+    }
+
+    // Proceed with the logic to clear the row and shift down the above rows
+}
 
     function handle(action) {
       switch(action) {
@@ -335,13 +363,18 @@
     }
 
     function removeLines() {
-      var x, y, complete, n = 0;
+      var x, y, complete, n = 0,metabyteBlocks = 0;
       for(y = ny ; y > 0 ; --y) {
         complete = true;
         for(x = 0 ; x < nx ; ++x) {
-          if (!getBlock(x, y))
+          if (!getBlock(x, y)){
             complete = false;
+        }else{
+            if (isMetabytePiece(getBlock(x, y))) {
+                    metabyteBlocks++;
+                }
         }
+    }
         if (complete) {
           removeLine(y);
           y = y + 1; // recheck same line
@@ -351,13 +384,21 @@
       if (n > 0) {
         addRows(n);
         addScore(100*Math.pow(2,n-1)); // 1: 100, 2: 200, 3: 400, 4: 800
-        addMetabytes(n);
+        addMetabytes(metabyteBlocks * 10);
       }
     }
+
     function addMetabytes(n) {
     metabytes += n; // Increment metabytes by the number of lines cleared.
     updateMetabyteDisplay();
 }
+
+function isMetabytePiece(block) {
+    // Assuming `block` is an object that includes a `color` property
+    const metabyteColors = ['lightcyan', 'aqua', 'aquamarine', 'mediumaquamarine', 'turquoise', 'cadetblue', 'teal'];
+    return metabyteColors.includes(block.color);
+}
+
 function updateMetabyteDisplay() {
     // Assuming you have an element to display metabytes similar to the score.
     document.getElementById('metabytes').innerText = `Metabytes: ${metabytes}`;
@@ -455,7 +496,6 @@ function updateMetabyteDisplay() {
     //-------------------------------------------------------------------------
 
     run();
-
   </script>
 
 </body>
