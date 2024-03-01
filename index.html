@@ -122,21 +122,37 @@ v+1E3){l=Math.round(u*1E3/(j-v));w=Math.min(w,l);x=Math.max(x,l);s(y.data,Math.m
     //                               0x44C0
     //
     //-------------------------------------------------------------------------
+// First, preload all your images at the start of your script
+var preloadedImages = {};
 
-    var i = { size: 4, blocks: [0x0F00, 0x2222, 0x00F0, 0x4444], color: 'cyan'   };
-    var j = { size: 3, blocks: [0x44C0, 0x8E00, 0x6440, 0x0E20], color: 'blue'   };
-    var l = { size: 3, blocks: [0x4460, 0x0E80, 0xC440, 0x2E00], color: 'orange' };
-    var o = { size: 2, blocks: [0xCC00, 0xCC00, 0xCC00, 0xCC00], color: 'yellow' };
-    var s = { size: 3, blocks: [0x06C0, 0x8C40, 0x6C00, 0x4620], color: 'green'  };
-    var t = { size: 3, blocks: [0x0E40, 0x4C40, 0x4E00, 0x4640], color: 'purple' };
-    var z = { size: 3, blocks: [0x0C60, 0x4C80, 0xC600, 0x2640], color: 'red'    };
-    var im = { size: 4, blocks: [0x0F00, 0x2222, 0x00F0, 0x4444], color: 'lightcyan'};
-    var jm = { size: 3, blocks: [0x44C0, 0x8E00, 0x6440, 0x0E20], color: 'aqua'   };
-    var lm = { size: 3, blocks: [0x4460, 0x0E80, 0xC440, 0x2E00], color: 'aquamarine' };
-    var om = { size: 2, blocks: [0xCC00, 0xCC00, 0xCC00, 0xCC00], color: 'mediumaquamarine' };
-    var sm = { size: 3, blocks: [0x06C0, 0x8C40, 0x6C00, 0x4620], color: 'turquoise'  };
-    var tm = { size: 3, blocks: [0x0E40, 0x4C40, 0x4E00, 0x4640], color: 'cadetblue' };
-    var zm = { size: 3, blocks: [0x0C60, 0x4C80, 0xC600, 0x2640], color: 'teal'    };
+function preloadImages(callback) {
+    var imagesToLoad = ['Kirmizi.png', 'Mavi.png', 'Mor.png', 'Turkuaz.png', 'Sari.png', 'Yesil.png', 'Turuncu.png'];
+    var loadedCount = 0;
+    imagesToLoad.forEach(function(imageSrc) {
+        var img = new Image();
+        img.onload = function() {
+            preloadedImages[imageSrc] = img;
+            loadedCount++;
+            if (loadedCount === imagesToLoad.length) {
+                callback(); // All images loaded, start the game
+            }
+        };
+        img.onerror = function() {
+            console.error('Image failed to load:', imageSrc);
+        };
+        img.src = imageSrc;
+    });
+}
+
+
+    var i = { size: 4, blocks: [0x0F00, 0x2222, 0x00F0, 0x4444], imgSrc: 'Turkuaz.png'   };
+    var j = { size: 3, blocks: [0x44C0, 0x8E00, 0x6440, 0x0E20], imgSrc: 'Mavi.png'   };
+    var l = { size: 3, blocks: [0x4460, 0x0E80, 0xC440, 0x2E00], imgSrc: 'Turuncu.png' };
+    var o = { size: 2, blocks: [0xCC00, 0xCC00, 0xCC00, 0xCC00], imgSrc: 'Sari.png' };
+    var s = { size: 3, blocks: [0x06C0, 0x8C40, 0x6C00, 0x4620], imgSrc: 'Yesil.png'  };
+    var t = { size: 3, blocks: [0x0E40, 0x4C40, 0x4E00, 0x4640], imgSrc: 'Mor.png' };
+    var z = { size: 3, blocks: [0x0C60, 0x4C80, 0xC600, 0x2640], imgSrc: 'Kirmizi.png'    };
+    
 
     //------------------------------------------------
     // do the bit manipulation and iterate through each
@@ -178,7 +194,7 @@ v+1E3){l=Math.round(u*1E3/(j-v));w=Math.min(w,l);x=Math.max(x,l);s(y.data,Math.m
     var pieces = [];
     function randomPiece() {
       if (pieces.length == 0)
-        pieces = [i,i,i,i,j,j,j,j,l,l,l,l,o,o,o,o,s,s,s,s,t,t,t,t,z,z,z,z,im,im,im,im,jm,jm,jm,jm,lm,lm,lm,lm,om,om,om,om,sm,sm,sm,sm,tm,tm,tm,tm,zm,zm,zm,zm];
+        pieces = [i,i,i,i,j,j,j,j,l,l,l,l,o,o,o,o,s,s,s,s,t,t,t,t,z,z,z,z];
       var type = pieces.splice(random(0, pieces.length-1), 1)[0];
       return { type: type, dir: DIR.UP, x: Math.round(random(0, nx - type.size)), y: 0 };
     }
@@ -203,9 +219,14 @@ v+1E3){l=Math.round(u*1E3/(j-v));w=Math.min(w,l);x=Math.max(x,l);s(y.data,Math.m
         requestAnimationFrame(frame, canvas);
       }
 
-      resize(); // setup all our sizing information
-      reset();  // reset the per-game variables
-      frame();  // start the first frame
+      preloadImages(function() {
+        // This code runs after all images are preloaded
+        resize(); // setup all our sizing information
+        reset(); // reset the per-game variables
+        frame(); // start the first frame
+    });
+
+      
 
     }
 
@@ -474,7 +495,7 @@ function updateMetabyteDisplay() {
         for(y = 0 ; y < ny ; y++) {
           for (x = 0 ; x < nx ; x++) {
             if (block = getBlock(x,y))
-              drawBlock(ctx, x, y, block.color);
+              drawBlock(ctx, x, y, block.imgSrc);
           }
         }
         ctx.strokeRect(0, 0, nx*dx - 1, ny*dy - 1); // court boundary
@@ -511,22 +532,30 @@ function updateMetabyteDisplay() {
     }
 
     function drawPiece(ctx, type, x, y, dir) {
-      eachblock(type, x, y, dir, function(x, y) {
-        drawBlock(ctx, x, y, type.color);
-      });
-    }
+  eachblock(type, x, y, dir, function(x, y) {
+    drawBlock(ctx, x, y, type.imgSrc);
+  });
+}
 
-    function drawBlock(ctx, x, y, color) {
-      ctx.fillStyle = color;
-      ctx.fillRect(x*dx, y*dy, dx, dy);
-      ctx.strokeRect(x*dx, y*dy, dx, dy)
-    }
+function drawBlock(ctx, x, y, imgSrc) {
+  var img = preloadedImages[imgSrc];
+  if (img ) {
+    ctx.drawImage(img, x * dx, y * dy, dx, dy);
+  } else {
+    // Optionally draw a placeholder or try to reload the image
+    console.error('Image not found or not loaded yet:', imgSrc);
+  }
+}
+
+
 
     //-------------------------------------------------------------------------
     // FINALLY, lets run the game
     //-------------------------------------------------------------------------
-
-    run();
+preloadImages(function(){
+  run();
+} );
+    
   </script>
 
 </body>
